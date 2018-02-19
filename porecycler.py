@@ -606,4 +606,4 @@ print ''
 print colours.bold + ''
 print '####################'
 print 'PoreCycler Complete!'
-print '####################'
+print '####################' + colours.term
