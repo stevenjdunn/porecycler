@@ -54,6 +54,7 @@ https://doi.org/10.1371/journal.pcbi.1005595
  
  ## Input CSV File
  PoreCycler requires you to provide it with an input file listing all of the barcodes used and the desired output sample names. 
+ 
  **e.g. CSV layout for a long-read only assembly:**
  
      NB01, Sample_1
