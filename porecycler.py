@@ -72,14 +72,17 @@ time.sleep(1)
 print ''
 
 # Create output directory if it doesn't exist:
-if not os.path.exists(args.fastq):
-    os.mkdir(args.fastq)
+if not os.path.exists(args.output):
+    os.mkdir(args.output)
     print 'Output directory created.'
 
 # Directory orientation
 invoked_from = os.getcwd()
 os.chdir(args.fastq)
 target_path = os.getcwd()
+os.chdir(invoked_from)
+os.chdir(args.output)
+out_path = os.getcwd()
 os.chdir(invoked_from)
 print ''
 print colours.blue + "Invoked from: " + colours.term,
@@ -222,7 +225,7 @@ if not args.hybrid:
                     sys.exit(1)
 
 # Create directory in output destination for raw concatenated fastq's
-catfastq = target_path + '/raw_fastqs'
+catfastq = out_path + '/raw_fastqs'
 if not os.path.exists(catfastq):
     os.mkdir(catfastq);
     print ''
@@ -238,7 +241,7 @@ else:
     time.sleep(1)
 
 # Create directory in output destination for collected porechopped reads
-porechoppedreads = target_path + '/porechopped'
+porechoppedreads = out_path + '/porechopped'
 if not os.path.exists(porechoppedreads):
     os.mkdir(porechoppedreads);
     print ''
@@ -267,8 +270,10 @@ if args.hybrid:
     Illumina_R2 = [sbspath + '/' + x for x in Ill_R2]
 
 # Concatenate multiple albacore output fastq into single logically named file
+print colours.invoking + 'Concatenating Reads...' + colours.term
+print ''
 for opt1, opt2 in zip(albacore_wildcard, rawfastqs):
-    subprocess.call(['cat', opt1, '>>', opt2])
+    subprocess.call(['cat', opt1, '>>', opt2], shell=True)
 
 # Porechop list generation
 porechopout = [catdestination + '/' + x + '_porechopped' for x in sample_numbers]
@@ -329,7 +334,7 @@ if args.merge:
     for opt1, opt2 in zip(unclassifiedinput, catunclass):
         subprocess.call(['cat', opt1, '>>', opt2])
 
-    unclasspath = [target_path + 'unclassified/unclassified.fastq']
+    unclasspath = [out_path + 'unclassified/unclassified.fastq']
     unclassporechopout = (catdestination + '/unclassified_porechop')
     unclassifiedchoppedoutput = [unclassporechopout + "/" + x for x in porechopsamples]
     unclassifiedsamples = ['UC' + x + '.fastq' for x in sample_numbers]
@@ -424,7 +429,7 @@ print ''
 print ''
 
 # Invoke unicycler
-unipath = (target_path + '/unicycler/')
+unipath = (out_path + '/unicycler/')
 if not os.path.exists(unipath):
     os.mkdir(unipath)
     print colours.blue + 'Unicycler output will be written to: ' + colours.term,
@@ -558,9 +563,9 @@ time.sleep(3)
 graphs = [x + '/assembly.gfa' for x in unioutdirs]
 assemblies = [x + '/assembly.fasta' for x in unioutdirs]
 logs = [x + '/unicycler.log' for x in unioutdirs]
-graph_path = (target_path + '/assembly_graphs')
-assembly_path = (target_path + '/assembly_fasta')
-log_path = (target_path + '/assembly_logs')
+graph_path = (out_path + '/assembly_graphs')
+assembly_path = (out_path + '/assembly_fasta')
+log_path = (out_path + '/assembly_logs')
 if not os.path.exists(graph_path):
     os.mkdir(graph_path)
 if not os.path.exists(assembly_path):
