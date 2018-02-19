@@ -79,7 +79,7 @@ conservative | `‑cons`                              | high (25)               
 normal       | `default`                            | medium (10)              | Merged with bridges & multiplicity = 1
 bold         | `‑bold`                              | low (1)                  | Merged wherever possible
 
-Uniycler is blessed by great documentation, if you're want to know more about how it bridges contigs please visit: https://github.com/rrwick/Unicycler#conservative-normal-and-bold
+Uniycler is blessed by great documentation, if you want to know more about how it bridges contigs please visit: https://github.com/rrwick/Unicycler#conservative-normal-and-bold
 
  ## Unclassified Reads
  During basecalling, Albacore will output all reads it was not able to sucessfully demultiplex in the 'unclassified' directory. By default, PoreCycler ignores these reads, and instead uses Porechop to repeat the barcode binning and create a consensual file. These resulting assembly will therefore be constructed of demultiplexed reads that both Albacore *and* porechop agree on.  
@@ -88,11 +88,13 @@ Uniycler is blessed by great documentation, if you're want to know more about ho
  
  ## Questions
  **I'm getting an error, what should I do?**
+ 
  I tried to write as many verbose error messages as possible at points where I think failure could occur. Some of them should explain the problem, others will just print a general error. It's worth reading over the PoreCycler.log file to see what happened - there are occasional # codes (e.g. #E1) to trace the error to a particular line of the script. 
  
  Check you have enough disk space, that you have read and write permissions on the target path, and that everything in your input file is correct. If you can't diagnose the issue yourself, raise an issue and attach your input file and PoreCycler.log. 
  
 **Why did you do X with Y in Z way?**
+
 Because I am inexperienced and write code to fix my own problems before packaging in a slightly neater way. I code on the train during my commute with limited internet access, so I can only sporadically check StackOverflow answers for my limitless questions. I’m sure 90% of my code can be achieved in a neater and more pythonic way. I won't be ofended if you make a pull request and school me!
  
 ## Pipeline Overview
