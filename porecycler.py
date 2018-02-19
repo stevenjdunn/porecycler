@@ -3,6 +3,7 @@ import subprocess
 import argparse
 import os
 import glob
+import shutil
 import csv
 import time
 import sys
@@ -258,8 +259,8 @@ else:
 
 # Generate lists for fastq generation
 sample_numbers = [x.split('B')[1] for x in barcodes]
-albacore_directories = [args.fastq + '/barcode' + x for x in sample_numbers]
-albacore_wildcard = [x + '/*' for x in albacore_directories]
+albacore_directories = [target_path + '/barcode' + x for x in sample_numbers]
+albacore_wildcard = [x + '/' for x in albacore_directories]
 raw_cat_fastq_names = [x + '_' + y + '.fastq' for x, y in zip(barcodes, samples)]
 catdestination = str(catfastq)
 rawfastqs = [catdestination + '/' + x for x in raw_cat_fastq_names]
@@ -272,8 +273,15 @@ if args.hybrid:
 # Concatenate multiple albacore output fastq into single logically named file
 print colours.invoking + 'Concatenating Reads...' + colours.term
 print ''
-for opt1, opt2 in zip(albacore_wildcard, rawfastqs):
-    subprocess.call(['cat', opt1, '>>', opt2], shell=True)
+for index, directory in enumerate(albacore_wildcard):
+    output_fastqs = rawfastqs[index]
+    for filename in os.listdir(directory):
+        fullpath = os.path.join(directory, filename)
+        with open(fullpath, 'r') as opt1:
+            with open(output_fastqs, 'a') as opt2:
+                opt2.write(opt1.read())
+print ''
+print 'Done!'
 
 # Porechop list generation
 porechopout = [catdestination + '/' + x + '_porechopped' for x in sample_numbers]
@@ -310,7 +318,7 @@ finalchoppedreads = [porechoppedreads + '/' + x for x in raw_cat_fastq_names]
 if not args.merge:
     try:
         for opt1, opt2 in zip(pathedporechopsamples, finalchoppedreads):
-             subprocess.check_call(['cp', opt1, opt2])
+            shutil.copyfile(opt1, opt2)
     except Exception as e:
         print ''
         print colours.warning + 'Failed to copy and rename reads.'
@@ -329,11 +337,19 @@ if not args.merge:
 
 # Invoke porechop on unclassified reads
 if args.merge:
-    unclassifiedinput = [args.fastq + 'unclassified/*']
+    unclassifiedinput = [args.fastq + 'unclassified/']
     catunclass = ['unclassified.fastq']
-    for opt1, opt2 in zip(unclassifiedinput, catunclass):
-        subprocess.call(['cat', opt1, '>>', opt2])
-
+    print colours.invoking + 'Concatenating Reads...' + colours.term
+    print ''
+    for index, directory in enumerate(unclassifiedinput):
+        output_fastqs2 = catunclass[index]
+        for filename in os.listdir(directory):
+            fullpath = os.path.join(directory, filename)
+            with open(fullpath, 'r') as opt1:
+                with open(output_fastqs2, 'a') as opt2:
+                    opt2.write(opt1.read())
+    print ''
+    print 'Done!'
     unclasspath = [out_path + 'unclassified/unclassified.fastq']
     unclassporechopout = (catdestination + '/unclassified_porechop')
     unclassifiedchoppedoutput = [unclassporechopout + "/" + x for x in porechopsamples]
@@ -380,7 +396,19 @@ if args.merge and args.call:
     # cat unclasssampdest + porechoppedreads >> nbxx
     for opt1, opt2, opt3 in zip(unclassifiedchoppedoutput, pathedporechopsamples, finalchoppedreads):
         try:
-            subprocess.check_call(['cat', opt1, opt2, '>>', opt3]);
+            #subprocess.Popen(['cat', opt1, opt2, '>>', opt3], shell=True)
+            print colours.invoking + 'Concatenating Reads...' + colours.term
+            print ''
+            for index, directory in enumerate(pathedporechopsamples):
+                output_fastqs3 = finalchoppedreads[index]
+                unclassified_files = unclassifiedchoppedoutput[index]
+                for filename in os.listdir(directory):
+                    fullpath = os.path.join(directory, filename)
+                    with open(output_fastqs3, 'r') as opt1:
+                        with open(unclassified_files, 'r' as opt2:
+                            with open(output_fastqs2, 'a') as opt3:
+                                opt3.write(opt1.read())
+                                opt3.write(opt2.read())
             print ''
             print colours.blue + 'Merged files succesfully written to: ' + colours.term,
             print porechoppedreads
@@ -578,21 +606,21 @@ logs_target = [log_path + '/' + x + '_' + y + '_unicycler.log' for x, y in zip(b
 
 # Rename and collect assemblies
 for opt1, opt2 in zip(assemblies, assemblies_target):
-    subprocess.call(['cp', opt1, opt2])
+    shutil.copyfile(opt1, opt2)
 print ''
 print colours.blue + 'Assemblies renamed and placed in: ' + colours.term,
 print assembly_path
 
 # Rename and collect graphs
 for opt1, opt2 in zip(graphs, graph_target):
-    subprocess.call(['cp', opt1, opt2])
+    shutil.copyfile(opt1, opt2)
 print ''
 print colours.blue + 'Assembly graphs renamed and placed in: ' + colours.term,
 print graph_path
 
 # Rename and collect logs
 for opt1, opt2 in zip(logs, logs_target):
-    subprocess.call(['cp', opt1, opt2])
+    shutil.copyfile(opt1, opt2)
 print ''
 print colours.blue + 'Unicycler logs renamed and placed in: ' + colours.term,
 print log_path
