@@ -89,16 +89,19 @@ print ''
 print colours.blue + "Invoked from: " + colours.term,
 print invoked_from
 print ''
-print colours.blue + "Output path: " + colours.term,
+print colours.blue + "MinION reads in: " + colours.term,
 print target_path
 if args.hybrid:
     os.chdir(args.sbs)
     sbspath = os.getcwd()
     os.chdir(invoked_from)
     print ''
-    print colours.blue + 'Illumina files in: ' + colours.term,
+    print colours.blue + 'Illumina reads in: ' + colours.term,
     print sbspath
-    time.sleep(1)
+print ''
+print colours.blue + "Output path: " + colours.term,
+print out_path
+time.sleep(1)
 
 # Import barcodes + sample names + illumina file names (hybrid mode)
 print ''
@@ -131,9 +134,9 @@ if args.hybrid:
             print ''
             print ''
             print colours.bold + '######################'
-            print 'Proceeding to Porechop'
+            print 'Processing Input Files
             print '######################' + colours.term
-            time.sleep(3)
+            time.sleep(2)
 
     except ValueError as e:
         print ''
@@ -271,6 +274,7 @@ if args.hybrid:
     Illumina_R2 = [sbspath + '/' + x for x in Ill_R2]
 
 # Concatenate multiple albacore output fastq into single logically named file
+print ''
 print colours.invoking + 'Concatenating Reads...' + colours.term
 print ''
 for index, directory in enumerate(albacore_wildcard):
@@ -280,8 +284,12 @@ for index, directory in enumerate(albacore_wildcard):
         with open(fullpath, 'r') as opt1:
             with open(output_fastqs, 'a') as opt2:
                 opt2.write(opt1.read())
+                print '.',
 print ''
 print 'Done!'
+print ''
+time.sleep(1)
+print ''
 
 # Porechop list generation
 porechopout = [catdestination + '/' + x + '_porechopped' for x in sample_numbers]
@@ -289,6 +297,10 @@ porechopsamples = ['BC' + x + '.fastq' for x in sample_numbers]
 pathedporechopsamples = [x + '/' + y for x,y in zip(porechopout, porechopsamples)]
 
 # Invoke porechop on concatenated fastqs
+print colours.bold + '######################'
+print 'Proceeding to Porechop'
+print '######################' + colours.term
+time.sleep(2)
 print ''
 print ''
 print colours.invoking + 'Invoking porechop...' + colours.term
@@ -377,53 +389,58 @@ if args.merge and args.call:
     for opt1, opt2 in zip(unclassifiedchoppedoutput, unclassifiedsampledestination):
         try:
             subprocess.call(['mv', opt1, opt2]);
-        except Exception as e:
+        except IOError as e:
             print ''
             print colours.warning + 'Failed to rename consensus reads.'
             print ''
+            print 'The following files were not found:'
             print (e)
+            print ''
+            print 'Porechop may not have identified any reads matching your barcodes in Albacores unclassified output'
+            print ''
             print '#C2'
             print ''
-            print colours.bold + '#############'
-            print 'Script Failed'
-            print '#############' + colours.term
-            sys.exit(1)
+            print colours.bold + '############'
+            print 'Merge Failed'
+            print '############' + colours.term
     print ''
     print colours.blue + 'Porechopped files succesfully renamed and written to: ' + colours.term,
     print porechoppedreads
     print ''
 
-    # cat unclasssampdest + porechoppedreads >> nbxx
-    for opt1, opt2, opt3 in zip(unclassifiedchoppedoutput, pathedporechopsamples, finalchoppedreads):
+    # cat unclasssampdest + porechoppedreads >> finalchoppedreads
+    print colours.invoking + 'Concatenating Reads...' + colours.term
+    print ''
+    for file1 in porechoppedreads:
         try:
-            #subprocess.Popen(['cat', opt1, opt2, '>>', opt3], shell=True)
-            print colours.invoking + 'Concatenating Reads...' + colours.term
-            print ''
-            for index, directory in enumerate(pathedporechopsamples):
-                output_fastqs3 = finalchoppedreads[index]
-                unclassified_files = unclassifiedchoppedoutput[index]
-                for filename in os.listdir(directory):
-                    fullpath = os.path.join(directory, filename)
-                    with open(output_fastqs3, 'r') as opt1:
-                        with open(unclassified_files, 'r' as opt2:
-                            with open(output_fastqs2, 'a') as opt3:
-                                opt3.write(opt1.read())
-                                opt3.write(opt2.read())
-            print ''
-            print colours.blue + 'Merged files succesfully written to: ' + colours.term,
-            print porechoppedreads
-            print ''
+            with open (file1, 'r') as in1:
+                with open (finalchoppedreads, 'a') as out:
+                    out.write(in1.read())
+                    print '.',
         except Exception as e:
             print ''
-            print colours.warning + 'Failed to merge unclassified and Albacore called reads.'
+            print 'Failed to locate or read Porechop output.'
             print ''
             print (e)
-            print '#C1'
+            print ''
+            print 'Check porechop log to troubleshoot.'
             print ''
             print colours.bold + '#############'
             print 'Script Failed'
             print '#############'+ colours.term
             sys.exit(1)
+    print ''
+    for file2 in unclassifiedsampledestination:
+        try:
+            with open (file2, 'r') as in2:
+                with open (finalchoppedreads, 'a') as out:
+                    out.write(in2.read())
+                    print '.',
+    print ''
+    print ''
+    print colours.blue + 'Merged files succesfully written to: ' + colours.term,
+    print porechoppedreads
+    print ''
 
 # Porechop completion and exit (-p)
 if args.porechop:
