@@ -134,7 +134,7 @@ if args.hybrid:
             print ''
             print ''
             print colours.bold + '######################'
-            print 'Processing Input Files
+            print 'Processing Input Files'
             print '######################' + colours.term
             time.sleep(2)
 
@@ -436,6 +436,15 @@ if args.merge and args.call:
                 with open (finalchoppedreads, 'a') as out:
                     out.write(in2.read())
                     print '.',
+                    out.close()
+         except Exception as e:
+            print '' + colours.warning
+            print 'Failed to merge unclassified reads with consensu reads.'
+            print ''
+            print 'Perhaps Porechop did not identify any unclassified reads matching your barcode?'
+            print ''
+            print 'Continuing with assembly' + colours.term
+            time.sleep(3)
     print ''
     print ''
     print colours.blue + 'Merged files succesfully written to: ' + colours.term,
