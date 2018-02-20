@@ -436,8 +436,7 @@ if args.merge and args.call:
                 with open (finalchoppedreads, 'a') as out:
                     out.write(in2.read())
                     print '.',
-                    out.close()
-         except Exception as e:
+        except Exception as e:
             print '' + colours.warning
             print 'Failed to merge unclassified reads with consensu reads.'
             print ''
