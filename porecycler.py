@@ -284,17 +284,38 @@ for index, directory in enumerate(albacore_wildcard):
         with open(fullpath, 'r') as opt1:
             with open(output_fastqs, 'a') as opt2:
                 opt2.write(opt1.read())
-                print '.',
 print ''
 print 'Done!'
 print ''
 time.sleep(1)
 print ''
 
+# Cat unclassified reads
+if args.merge:
+    unclassifiedinput = [target_path + '/unclassified/']
+    catunclass = ['unclassified.fastq']
+    unclassporechopout = (catdestination + '/unclassified_porechop')
+    unclassoutput = (unclassporechopout + '/unclassified.fastq')
+    if not os.path.exists(unclassporechopout):
+        os.mkdir(unclassporechopout)
+    print colours.invoking + 'Concatenating Unclassified Reads...' + colours.term
+    print ''
+    for directory in unclassifiedinput:
+        for filename in os.listdir(directory):
+            fullpath = os.path.join(directory, filename)
+            with open(fullpath, 'r') as opt1:
+                with open(unclassoutput, 'a') as opt2:
+                    opt2.write(opt1.read())
+    print ''
+    print 'Done!'
+    print ''
+    print ''
+    time.sleep(2)
+
 # Porechop list generation
 porechopout = [catdestination + '/' + x + '_porechopped' for x in sample_numbers]
 porechopsamples = ['BC' + x + '.fastq' for x in sample_numbers]
-pathedporechopsamples = [x + '/' + y for x,y in zip(porechopout, porechopsamples)]
+pathedporechopsamples = [x + '/' + y for x, y in zip(porechopout, porechopsamples)]
 
 # Invoke porechop on concatenated fastqs
 print colours.bold + '######################'
@@ -349,26 +370,12 @@ if not args.merge:
 
 # Invoke porechop on unclassified reads
 if args.merge:
-    unclassifiedinput = [args.fastq + 'unclassified/']
-    catunclass = ['unclassified.fastq']
-    print colours.invoking + 'Concatenating Reads...' + colours.term
-    print ''
-    for index, directory in enumerate(unclassifiedinput):
-        output_fastqs2 = catunclass[index]
-        for filename in os.listdir(directory):
-            fullpath = os.path.join(directory, filename)
-            with open(fullpath, 'r') as opt1:
-                with open(output_fastqs2, 'a') as opt2:
-                    opt2.write(opt1.read())
-    print ''
-    print 'Done!'
-    unclasspath = [out_path + 'unclassified/unclassified.fastq']
-    unclassporechopout = (catdestination + '/unclassified_porechop')
+    unclasspath = (out_path + '/unclassified/unclassified.fastq')
     unclassifiedchoppedoutput = [unclassporechopout + "/" + x for x in porechopsamples]
     unclassifiedsamples = ['UC' + x + '.fastq' for x in sample_numbers]
     unclassifiedsampledestination = [unclassporechopout + "/" + x for x in unclassifiedsamples]
     try:
-        subprocess.check_call(['porechop', '-i', unclasspath, '-b', unclassporechopoutput])
+        subprocess.check_call(['porechop', '-i', unclassoutput, '-b', unclassporechopout, '--no_split'])
     except Exception as e:
         print colours.warning + ''
         print 'Failed to invoke porechop on unclassified reads'
@@ -388,7 +395,7 @@ if args.merge:
 if args.merge and args.call:
     for opt1, opt2 in zip(unclassifiedchoppedoutput, unclassifiedsampledestination):
         try:
-            subprocess.call(['mv', opt1, opt2]);
+            shutil.copyfile(opt1, opt2)
         except IOError as e:
             print ''
             print colours.warning + 'Failed to rename consensus reads.'
@@ -411,12 +418,14 @@ if args.merge and args.call:
     # cat unclasssampdest + porechoppedreads >> finalchoppedreads
     print colours.invoking + 'Concatenating Reads...' + colours.term
     print ''
-    for file1 in porechoppedreads:
+    for file1, file2, fileout in zip(pathedporechopsamples,unclassifiedsampledestination, finalchoppedreads):
         try:
             with open (file1, 'r') as in1:
-                with open (finalchoppedreads, 'a') as out:
-                    out.write(in1.read())
-                    print '.',
+                with open (file2, 'r') as in2:
+                    with open (fileout, 'a') as out:
+                        out.write(in1.read())
+                        out.write(in2.read())
+                        print '.',
         except Exception as e:
             print ''
             print 'Failed to locate or read Porechop output.'
@@ -429,21 +438,6 @@ if args.merge and args.call:
             print 'Script Failed'
             print '#############'+ colours.term
             sys.exit(1)
-    print ''
-    for file2 in unclassifiedsampledestination:
-        try:
-            with open (file2, 'r') as in2:
-                with open (finalchoppedreads, 'a') as out:
-                    out.write(in2.read())
-                    print '.',
-        except Exception as e:
-            print '' + colours.warning
-            print 'Failed to merge unclassified reads with consensu reads.'
-            print ''
-            print 'Perhaps Porechop did not identify any unclassified reads matching your barcode?'
-            print ''
-            print 'Continuing with assembly' + colours.term
-            time.sleep(3)
     print ''
     print ''
     print colours.blue + 'Merged files succesfully written to: ' + colours.term,
