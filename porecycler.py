@@ -63,6 +63,29 @@ if args.conservative and args.bold:
     print '' + colours.term
     sys.exit(1)
 
+# Repetitive element definitions
+def scriptfail():
+    print ''
+    print colours.bold + '#############'
+    print 'Script Failed'
+    print '#############'+ colours.term
+
+def csverror():
+    print ''
+    print colours.warning + colours.bold + "Unexpected item in bagging area!" + colours.term
+    time.sleep(1)
+    print ''
+    print ''
+    print colours.warning + 'Text file contains more or less than four columns.'
+    print ''
+    print 'You have used the option for a hybrid assembly, your input file should be formatted like so:'
+    print 'NBXX, Sample_ID, Illumina_R1, Illumina R2'
+    print ''
+    print 'If you are attempting to use MinION reads only, do not use the -hyb flag'
+    print ''
+    print 'If your input file contains the correct information, column 4 may be followed by a trailing comma'
+    print 'e.g "A, B, C, D," - please change it to "A, B, C, D" and try again.'
+
 # Welcome message:
 print ''
 print ''
@@ -133,34 +156,13 @@ if args.hybrid:
             time.sleep(2)
             print ''
             print ''
-            print colours.bold + '######################'
-            print 'Processing Input Files'
-            print '######################' + colours.term
-            time.sleep(2)
-
     except ValueError as e:
         print ''
-        print ''
-        print colours.warning + colours.bold + "Unexpected item in bagging area!" + colours.term
-        time.sleep(1)
-        print ''
-        print (e)
-        print ''
-        print colours.warning + 'Text file contains more or less than four columns.'
-        print ''
-        print 'You have used the option for a hybrid assembly, your input file should be formatted like so:'
-        print 'NBXX, Sample_ID, Illumina_R1, Illumina R2'
-        print ''
-        print 'If you are attempting to use MinION reads only, do not use the -hyb flag'
-        print ''
-        print 'If your input file contains the correct information, column 4 may be followed by a trailing comma'
-        print 'e.g "A, B, C, D," - please change it to "A, B, C, D" and try again.'
+        csverror()
+        print e
         print ''
         print '#I2'
-        print ''
-        print colours.bold + '#############'
-        print 'Script Failed'
-        print '#############'+ colours.term
+        scriptfail()
         sys.exit(1)
 
 # Import barcodes + sample names only
@@ -205,27 +207,13 @@ if not args.hybrid:
                 time.sleep(2)
         except ValueError as e:
                     print ''
-                    print ''
-                    print colours.warning + colours.bold + "Unexpected item in bagging area!" + colours.term
-                    time.sleep(1)
+                    csverror()
                     print ''
                     print (e)
                     print ''
-                    print colours.warning + 'Text file contains more or less than two columns.'
-                    print ''
-                    print 'You have opted to process MinION reads only, your input file should be formatted like so:'
-                    print 'NBXX, Sample_ID'
-                    print ''
-                    print 'If you are attempting to use MinION + Illumina reads use the -hyb flag'
-                    print ''
-                    print 'If your input file contains the correct information, column 2 may be followed by a trailing comma'
-                    print 'e.g "A, B," - please change it to "A, B" and try again.'
-                    print ''
                     print '#I1'
                     print ''
-                    print colours.bold + '#############'
-                    print 'Script Failed'
-                    print '#############'+ colours.term
+                    scriptfail()
                     sys.exit(1)
 
 # Create directory in output destination for raw concatenated fastq's
@@ -264,7 +252,7 @@ else:
 sample_numbers = [x.split('B')[1] for x in barcodes]
 albacore_directories = [target_path + '/barcode' + x for x in sample_numbers]
 albacore_wildcard = [x + '/' for x in albacore_directories]
-raw_cat_fastq_names = [x + '_' + y + '.fastq' for x, y in zip(barcodes, samples)]
+raw_cat_fastq_names = [x + '_' + y + '.fastq' for x, y in zip(samples, barcodes)]
 catdestination = str(catfastq)
 rawfastqs = [catdestination + '/' + x for x in raw_cat_fastq_names]
 
@@ -272,6 +260,12 @@ rawfastqs = [catdestination + '/' + x for x in raw_cat_fastq_names]
 if args.hybrid:
     Illumina_R1 = [sbspath + '/' + x for x in Ill_R1]
     Illumina_R2 = [sbspath + '/' + x for x in Ill_R2]
+
+# Progression message
+print colours.bold + '######################'
+print 'Processing Input Files'
+print '######################' + colours.term
+time.sleep(2)
 
 # Concatenate multiple albacore output fastq into single logically named file
 print ''
@@ -339,9 +333,7 @@ except Exception as e:
     print ''
     print 'Check output logs to troubleshoot'
     print ''
-    print colours.bold + '#############'
-    print 'Script Failed'
-    print '#############' + colours.term
+    scriptfail()
     sys.exit(1)
 
 # List creation
@@ -359,9 +351,7 @@ if not args.merge:
         print (e)
         print '#F1'
         print ''
-        print colours.bold + '#############'
-        print 'Script Failed'
-        print '#############' + colours.term
+        scriptfail()
         sys.exit(1)
     print ''
     print colours.blue + 'Porechopped files succesfully renamed and written to: ' + colours.term,
@@ -382,9 +372,7 @@ if args.merge:
         print (e)
         print ''
         print '#E20'
-        print colours.bold + '#############'
-        print 'Script Failed'
-        print '#############' + colours.term
+        scriptfail()
         sys.exit(1)
     print ''
     print colours.blue + 'Unclassified files succesfully porechopped and written to: ' + colours.term,
@@ -434,9 +422,7 @@ if args.merge and args.call:
             print ''
             print 'Check porechop log to troubleshoot.'
             print ''
-            print colours.bold + '#############'
-            print 'Script Failed'
-            print '#############'+ colours.term
+            scriptfail()
             sys.exit(1)
     print ''
     print ''
@@ -484,7 +470,7 @@ if not os.path.exists(unipath):
 else:
     print colours.blue + 'Unicycler output will be placed in: ' + colours.term,
     print unipath
-unioutdirs = [unipath + x + '_' + y for x, y in zip(barcodes, samples)]
+unioutdirs = [unipath + x + '_' + y for x, y in zip(samples, barcodes)]
 print ''
 print ''
 print colours.invoking + 'Invoking Unicycler...' + colours.term
@@ -504,9 +490,7 @@ if not args.hybrid and not args.conservative:
                     print ''
                     print 'Check logs to troubleshoot. #E1'
                     print ''
-                    print colours.bold + '#############'
-                    print 'Script Failed'
-                    print '#############'+ colours.term
+                    scriptfail()
                     sys.exit(1)
 
 # Long read + conservative
@@ -522,9 +506,7 @@ if args.conservative and not args.hybrid:
                     print ''
                     print 'Check logs to troubleshoot. #E2'
                     print ''
-                    print colours.bold + '#############'
-                    print 'Script Failed'
-                    print '#############'+ colours.term
+                    scriptfail()
                     sys.exit(1)
 
 # Long read + bold
@@ -540,9 +522,7 @@ if args.bold and not args.hybrid:
                     print ''
                     print 'Check logs to troubleshoot. #E3'
                     print ''
-                    print colours.bold + '#############'
-                    print 'Script Failed'
-                    print '#############'+ colours.term
+                    scriptfail()
                     sys.exit(1)
 # Hybrid only
 if args.hybrid and not args.conservative:
@@ -558,9 +538,7 @@ if args.hybrid and not args.conservative:
                     print ''
                     print 'Check logs to troubleshoot. #E4'
                     print ''
-                    print colours.bold + '#############'
-                    print 'Script Failed'
-                    print '#############'+ colours.term
+                    scriptfail()
                     sys.exit(1)
 
 # Hybrid + conservative
@@ -576,9 +554,7 @@ if args.hybrid and args.conservative:
                     print ''
                     print 'Check logs to troubleshoot. #E5'
                     print ''
-                    print colours.bold + '#############'
-                    print 'Script Failed'
-                    print '#############'+ colours.term
+                    scriptfail()
                     sys.exit(1)
 
 # Hybrid + bold
@@ -594,9 +570,7 @@ if args.hybrid and args.conservative:
                     print ''
                     print 'Check logs to troubleshoot. #E6'
                     print ''
-                    print colours.bold + '#############'
-                    print 'Script Failed'
-                    print '#############'+ colours.term
+                    scriptfail()
                     sys.exit(1)
 
 # Unicycler completion message
@@ -619,9 +593,9 @@ if not os.path.exists(assembly_path):
     os.mkdir(assembly_path)
 if not os.path.exists(log_path):
     os.mkdir(log_path)
-graph_target = [graph_path + '/' + x + '_' + y + '_graph.gfa' for x, y in zip(barcodes, samples)]
-assemblies_target = [assembly_path + '/' + x + '_' + y + '.fasta' for x, y in zip(barcodes, samples)]
-logs_target = [log_path + '/' + x + '_' + y + '_unicycler.log' for x, y in zip(barcodes, samples)]
+graph_target = [graph_path + '/' + x + '_' + y + '_graph.gfa' for x, y in zip(samples, barcodes)]
+assemblies_target = [assembly_path + '/' + x + '_' + y + '.fasta' for x, y in zip(samples, barcodes)]
+logs_target = [log_path + '/' + x + '_' + y + '_unicycler.log' for x, y in zip(samples, barcodes)]
 
 # Rename and collect assemblies
 for opt1, opt2 in zip(assemblies, assemblies_target):
@@ -644,6 +618,10 @@ print ''
 print colours.blue + 'Unicycler logs renamed and placed in: ' + colours.term,
 print log_path
 
+# Immediate future plans:
+    # Add assembly only argument to allow user supplied list of filenames for assembly. 
+    # Write output file containing final read names for use in assembly only argument. 
+    
 # Possible future plans:
     # Parse unicycler output logs to detect errors.
     # Create summary report with assembly metrics.
