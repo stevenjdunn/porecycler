@@ -9,6 +9,9 @@ import time
 import sys
 import re
 
+# Version
+_version_ = "0.1"
+
 # Argparse argument setup
 parser = argparse.ArgumentParser(description="Hands free MinION data processing using Porechop for barcode trimming/binning, and Unicycler for assembly.")
 requiredargs = parser.add_argument_group('required arguments')
