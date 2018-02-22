@@ -10,7 +10,7 @@ import sys
 import re
 
 # Version
-_version_ = "0.1"
+_version_ = "0.1.1"
 
 # Argparse argument setup
 parser = argparse.ArgumentParser(description="Hands free MinION data processing using Porechop for barcode trimming/binning, and Unicycler for assembly.")
@@ -380,7 +380,7 @@ if not args.unicycler:
         unclassifiedsamples = ['UC' + x + '.fastq' for x in sample_numbers]
         unclassifiedsampledestination = [unclassporechopout + "/" + x for x in unclassifiedsamples]
         try:
-            subprocess.check_call(['porechop', '-i', unclassoutput, '-b', unclassporechopout, '--no_split'])
+            subprocess.check_call(['porechop', '-i', unclassoutput, '-b', unclassporechopout])
         except Exception as e:
             print colours.warning + ''
             print 'Failed to invoke porechop on unclassified reads'
@@ -862,7 +862,6 @@ print colours.blue + 'Unicycler logs renamed and placed in: ' + colours.term,
 print log_path
 
 # DONE:
-    # Add assembly only argument to allow user supplied list of filenames for assembly.
 
 # Immediate future plans:
     # Test Assembly only pathway
@@ -870,6 +869,7 @@ print log_path
     # Test Cons, Bold hybrid pathways
     # Test Porechop only pathway
     # Test Unicycler only pathway
+    # Add option to remove intermediate files
 
 # Possible future plans:
     # Parse unicycler output logs to detect errors.
