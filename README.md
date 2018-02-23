@@ -119,6 +119,39 @@ Uniycler is blessed by great documentation, if you want to know more about how i
  You can also choose to process the unclassified reads using porechop using the '-c' or '--call' flag for manual inspection. If you want to include these reads in the assembly, use the '-m' or '--merge' flag, which will concatenate the consensual reads and unclassified reads into a final fastq before running unicycler. Please note that by doing this, you are losing the consensus between Albacore and Porechop, and introducing a number of non-consensual reads.
  
  ## Questions
+
+ **How can I add flags to Porechop or Unicycler?**
+ 
+ Porechop and Unicycler are invoked by PoreCycler using 'subprocess'. The script hands each program a list of variables in a comma separated, quote defined manner. You can add flags to either program by editing the script at points where subprocess is mentioned, which as of version 0.1.1 are on lines:
+ 
+ Porechop:
+    
+ - 341, 383
+
+Unicycler:
+
+ - 499, 515, 531, 546, 562, 578, 743, 759, 775, 791, 807, 823
+ 
+ The only thing you need to know is that any spaces in your additional flags need to be comma separated. Here are two examples:
+ 
+ Porechop: adding --threads 8 (Line 341):
+ 
+      subprocess.check_call(['porechop', '-i', opt1, '-b', opt2])
+ 
+      subprocess.check_call(['porechop', '-i', opt1, '-b', opt2, '--threads', '8'])
+      
+Unicycler: adding --keep 3 and --no_correct (Line 515):
+
+     subprocess.check_call(['unicycler', '-l', opt1, '-o', opt2])
+     
+     subprocess.check_call(['unicycler', '-l', opt1, '-o', opt2, '--keep', '3', '--no_correct'])
+      
+**Why does Albacore produce unclassified reads?**
+ 
+ Based on discussions on the ONT community forum, it seems there are multiple reasons for Albacore's unclassified binning. Library prep efficiency (i.e. barcode and adapter ligation), read quality, and the pore dynamics (e.g. sequencing as soon as a barcoded fragment enters, correctly reading the entire length with no sticking fragments) will all have an impact. It seems many users are reporting 20-30% of the total yield producing unclassified reads, which matches our own observations using the PCR free native 1D barcoding kit. As the technology progresses and kit chemistries/barcode designs improve, this will hopefully be reduced. For now, Porechop does seem to be able to recover the majority of unclassified sequence, however it's worth assessing the overall quality and length of these reads.
+ 
+ 
+  
  **I'm getting an error, what should I do?**
  
  I tried to write as many verbose error messages as possible at points where I think failure could occur. Some of them should explain the problem, others will just print a general error. It's worth reading over the PoreCycler.log file to see what happened - there are occasional # codes (e.g. #E1) to trace the error to a particular pathway in the script. 
