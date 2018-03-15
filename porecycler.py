@@ -10,7 +10,7 @@ import sys
 import re
 
 # Version
-_version_ = "0.1.2"
+_version_ = "0.1.3"
 
 # Argparse argument setup
 parser = argparse.ArgumentParser(description="Hands free MinION data processing using Porechop for barcode trimming/binning, and Unicycler for assembly")
@@ -722,9 +722,9 @@ if args.unicycler:
         os.mkdir(assembly_path)
     if not os.path.exists(log_path):
         os.mkdir(log_path)
-    graph_target = [graph_path + '/' + x + '_graph.gfa' for x in zip(samples)]
-    assemblies_target = [assembly_path + '/' + x + '.fasta' for x in zip(samples)]
-    logs_target = [log_path + '/' + x + '_unicycler.log' for x in zip(samples)]
+    graph_target = [graph_path + '/' + x + '_graph.gfa' for x in samples]
+    assemblies_target = [assembly_path + '/' + x + '.fasta' for x in samples]
+    logs_target = [log_path + '/' + x + '_unicycler.log' for x in samples]
 
     # Invoke unicycler
     if not os.path.exists(unipath):
@@ -788,7 +788,7 @@ if args.unicycler:
     # Hybrid only
     if args.hybrid and not args.conservative and not args.bold:
         try:
-            for opt1, opt2, opt3, opt4 in zip(Minion_R1, Illumina_R1, Illumina_R2, unioutdirs):
+            for opt1, opt2, opt3, opt4 in zip(Minion_in, Illumina_R1, Illumina_R2, unioutdirs):
                 subprocess.check_call(['unicycler', '-1', opt2, '-2', opt3, '-l', opt1, '-o', opt4])
         except Exception as e:
                         print ''
@@ -870,14 +870,12 @@ if args.remove:
     shutil.rmtree(catfastq)
 
 # DONE:
-    # Add option to remove intermediate files
-    # Test Porechop only pathway
-    # Test Cons, Bold hybrid pathways
+    # Test Unicycler only pathway
 
 # Immediate future plans:
-    # Test Assembly only pathway
     # Test Cons, Bold Long only pathways
     # Test Unicycler only pathway
+    # Strip weird BOM encoding from CSVs
 
 # Possible future plans:
     # Parse unicycler output logs to detect errors.
