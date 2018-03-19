@@ -10,7 +10,7 @@ import sys
 import re
 
 # Version
-_version_ = "0.1.3"
+_version_ = "0.1.4"
 
 # Argparse argument setup
 parser = argparse.ArgumentParser(description="Hands free MinION data processing using Porechop for barcode trimming/binning, and Unicycler for assembly")
@@ -772,7 +772,7 @@ if args.unicycler:
     # Long read + bold
     if args.bold and not args.hybrid:
         try:
-            for opt1, opt2 in zip(finalchoppedreads, unioutdirs):
+            for opt1, opt2 in zip(Minion_in, unioutdirs):
                 subprocess.check_call(['unicycler', '--mode', 'bold','-l', opt1, '-o', opt2])
         except Exception as e:
                         print ''
@@ -804,7 +804,7 @@ if args.unicycler:
     # Hybrid + conservative
     if args.hybrid and args.conservative:
         try:
-            for opt1, opt2, opt3, opt4 in zip(finalchoppedreads, Illumina_R1, Illumina_R2, unioutdirs):
+            for opt1, opt2, opt3, opt4 in zip(Minion_in, Illumina_R1, Illumina_R2, unioutdirs):
                 subprocess.check_call(['unicycler', '--mode', 'conservative', '-1', opt2, '-2', opt3, '-l', opt1, '-o', opt4])
         except Exception as e:
                         print ''
@@ -820,7 +820,7 @@ if args.unicycler:
     # Hybrid + bold
     if args.hybrid and args.bold:
         try:
-            for opt1, opt2, opt3, opt4 in zip(finalchoppedreads, Illumina_R1, Illumina_R2, unioutdirs):
+            for opt1, opt2, opt3, opt4 in zip(Minion_in, Illumina_R1, Illumina_R2, unioutdirs):
                 subprocess.check_call(['unicycler', '--mode', 'bold', '-1', opt2, '-2', opt3, '-l', opt1, '-o', opt4])
         except Exception as e:
                         print ''
@@ -870,17 +870,16 @@ if args.remove:
     shutil.rmtree(catfastq)
 
 # DONE:
-    # Test Unicycler only pathway
+    # Test Unicycler only pathway (hyb default, bold)
 
 # Immediate future plans:
     # Test Cons, Bold Long only pathways
-    # Test Unicycler only pathway
+    # Test hybrid cons pathway
     # Strip weird BOM encoding from CSVs
 
 # Possible future plans:
     # Parse unicycler output logs to detect errors.
     # Create summary report with assembly metrics.
-    # Split into separate modules and wrap in larger package to allow continuation from various checkpoints.
     # Write output file containing final read names for use in assembly only argument.
 
 # Script ending
